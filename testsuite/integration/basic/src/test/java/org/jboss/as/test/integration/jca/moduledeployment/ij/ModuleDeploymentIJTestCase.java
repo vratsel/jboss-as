@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.as.test.integration.jca.moduledeployment.activation;
+package org.jboss.as.test.integration.jca.moduledeployment.ij;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -29,7 +29,6 @@ import org.jboss.as.test.integration.jca.moduledeployment.ModuleDeploymentTestCa
 import org.jboss.as.test.integration.management.base.AbstractMgmtTestBase;
 import org.jboss.as.test.integration.management.base.ContainerResourceMgmtTestBase;
 import org.jboss.as.test.integration.management.util.MgmtOperationException;
-import org.jboss.as.test.integration.management.util.ModelUtil;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -52,42 +51,27 @@ import static org.junit.Assert.assertNotNull;
  * @author <a href="vrastsel@redhat.com">Vladimir Rastseluev</a>
  */
 @RunWith(Arquillian.class)
-@ServerSetup(ModuleDeploymentActivationTestCase.ModuleAcDeploymentTestCaseSetup.class)
-public class ModuleDeploymentActivationTestCase extends
-		ContainerResourceMgmtTestBase {
+@ServerSetup(ModuleDeploymentIJTestCase.ModuleIJDeploymentTestCaseSetup.class)
+public class ModuleDeploymentIJTestCase extends ContainerResourceMgmtTestBase {
 
-	static class ModuleAcDeploymentTestCaseSetup extends
+	static class ModuleIJDeploymentTestCaseSetup extends
 			ModuleDeploymentTestCaseSetup {
 		private ModelNode address;
 
 		@Override
 		public void doSetup(ManagementClient managementClient) throws Exception {
-			addModule("org/jboss/ironjacamar/ra16out", "ra16out.rar");
+			addModule("org/jboss/ironjacamar/ra16outij2", "ra16outij2.rar");
 
 			address = new ModelNode();
 			address.add("subsystem", "resource-adapters");
-			address.add("resource-adapter", "org.jboss.ironjacamar.ra16out");
+			address.add("resource-adapter", "ra16outij2");
 			address.protect();
 
 			final ModelNode operation = new ModelNode();
 			operation.get(OP).set("add");
 			operation.get(OP_ADDR).set(address);
-			operation.get("module").set("org.jboss.ironjacamar.ra16out");
-
-			final ModelNode address1 = address.clone();
-			address1.add("connection-definitions", "java:/testMeRA");
-			address1.protect();
-
-			final ModelNode operation1 = new ModelNode();
-			operation1.get(OP).set("add");
-			operation1.get(OP_ADDR).set(address1);
-			operation1
-					.get("class-name")
-					.set("org.jboss.jca.test.deployers.spec.rars.ra16out.TestManagedConnectionFactory");
-			operation1.get("jndi-name").set("java:/testMeRA");
-			ModelNode[] operations = new ModelNode[] { operation, operation1 };
-
-			executeOperation(ModelUtil.createCompositeNode(operations));
+			operation.get("module").set("org.jboss.ironjacamar.ra16outij2");
+			executeOperation(operation);
 
 		}
 
@@ -95,7 +79,7 @@ public class ModuleDeploymentActivationTestCase extends
 		public void tearDown(ManagementClient managementClient,
 				String containerId) throws Exception {
 			remove(address);
-			removeModule("org/jboss/ironjacamar/ra16out");
+			removeModule("org/jboss/ironjacamar/ra16outij2");
 		}
 
 	}
@@ -109,9 +93,9 @@ public class ModuleDeploymentActivationTestCase extends
 	public static JavaArchive createDeployment() throws Exception {
 
 		JavaArchive ja = ShrinkWrap.create(JavaArchive.class, "multiple.jar");
-		ja.addClasses(ModuleDeploymentActivationTestCase.class,
+		ja.addClasses(ModuleDeploymentIJTestCase.class,
 				MgmtOperationException.class, XMLElementReader.class,
-				XMLElementWriter.class, ModuleAcDeploymentTestCaseSetup.class,
+				XMLElementWriter.class, ModuleIJDeploymentTestCaseSetup.class,
 				ModuleDeploymentTestCaseSetup.class);
 
 		ja.addPackage(AbstractMgmtTestBase.class.getPackage());
@@ -123,7 +107,7 @@ public class ModuleDeploymentActivationTestCase extends
 		return ja;
 	}
 
-	@Resource(mappedName = "java:/testMeRA")
+	@Resource(mappedName = "java:/testMe2")
 	private ConnectionFactory connectionFactory;
 
 	/**
