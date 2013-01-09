@@ -27,6 +27,10 @@ import javax.naming.NamingException;
 import javax.naming.Reference;
 
 import javax.resource.ResourceException;
+import javax.resource.cci.Connection;
+import javax.resource.cci.ConnectionSpec;
+import javax.resource.cci.RecordFactory;
+import javax.resource.cci.ResourceAdapterMetaData;
 import javax.resource.spi.ConnectionManager;
 
 /**
@@ -77,7 +81,7 @@ public class MultipleConnectionFactory1Impl implements MultipleConnectionFactory
     * @exception ResourceException Thrown if a connection can't be obtained
     */
    @Override
-   public MultipleConnection1 getConnection() throws ResourceException
+   public Connection getConnection() throws ResourceException
    {
       log.finest("getConnection()");
       return (MultipleConnection1)connectionManager.allocateConnection(mcf, null);
@@ -107,6 +111,24 @@ public class MultipleConnectionFactory1Impl implements MultipleConnectionFactory
       log.finest("setReference()");
       this.reference = reference;
    }
+
+@Override
+public Connection getConnection(ConnectionSpec arg0) throws ResourceException {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+@Override
+public ResourceAdapterMetaData getMetaData() throws ResourceException {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+@Override
+public RecordFactory getRecordFactory() throws ResourceException {
+	// TODO Auto-generated method stub
+	return null;
+}
 
 
 }
