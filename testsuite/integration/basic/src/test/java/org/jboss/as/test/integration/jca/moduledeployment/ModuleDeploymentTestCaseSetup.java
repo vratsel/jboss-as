@@ -22,7 +22,17 @@
 package org.jboss.as.test.integration.jca.moduledeployment;
 
 import org.jboss.as.arquillian.container.ManagementClient;
+import org.jboss.as.connector.subsystems.resourceadapters.Namespace;
+import org.jboss.as.connector.subsystems.resourceadapters.ResourceAdapterSubsystemParser;
+import org.jboss.as.test.integration.jca.JcaMgmtServerSetupTask;
+import org.jboss.as.test.integration.jca.rar.MultipleConnectionFactory1;
 import org.jboss.as.test.integration.management.base.AbstractMgmtServerSetupTask;
+import org.jboss.as.test.shared.FileUtils;
+import org.jboss.dmr.ModelNode;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
 
 import org.xnio.IoUtils;
 
@@ -32,25 +42,27 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 
 /**
  * AS7-5768 -Support for RA module deployment
  * 
  * @author <a href="vrastsel@redhat.com">Vladimir Rastseluev</a>
  */
-public class ModuleDeploymentTestCaseSetup extends AbstractMgmtServerSetupTask {
+public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 
-	protected File module;
+	protected File testModuleRoot;
 	protected File slot;
+	public static ModelNode address;
+	
 
 	public void addModule(final String moduleName) throws Exception {
-		File testModuleRoot = new File(getModulePath(), moduleName);
-		deleteRecursively(testModuleRoot);
-		createTestModule(testModuleRoot);
+		removeModule(moduleName);
+		createTestModule();
 	}
 
 	public void removeModule(final String moduleName) throws Exception {
-		File testModuleRoot = new File(getModulePath(), moduleName);
+		testModuleRoot = new File(getModulePath(), moduleName);
 		deleteRecursively(testModuleRoot);
 	}
 
@@ -65,7 +77,7 @@ public class ModuleDeploymentTestCaseSetup extends AbstractMgmtServerSetupTask {
 		}
 	}
 
-	private void createTestModule(File testModuleRoot) throws IOException {
+	private void createTestModule() throws IOException {
 		if (testModuleRoot.exists()) {
 			throw new IllegalArgumentException(testModuleRoot
 					+ " already exists");
@@ -98,7 +110,6 @@ public class ModuleDeploymentTestCaseSetup extends AbstractMgmtServerSetupTask {
 	}
 
 	private File getModulePath() {
-		if (module == null) {
 			String modulePath = System.getProperty("module.path", null);
 			if (modulePath == null) {
 				String jbossHome = System.getProperty("jboss.home", null);
@@ -119,22 +130,53 @@ public class ModuleDeploymentTestCaseSetup extends AbstractMgmtServerSetupTask {
 				throw new IllegalStateException(
 						"Determined module path is not a dir");
 			}
-			module = moduleDir;
-		}
-		return module;
+		return moduleDir;
 	}
 
 	@Override
-	public void tearDown(ManagementClient managementClient, String containerId)
-			throws Exception {
-		// TODO Auto-generated method stub
-
+	public void tearDown(ManagementClient managementClient,
+			String containerId) throws Exception {
+		remove(address);
+		removeModule("org/jboss/ironjacamar/ra16out");
+		//reload();
 	}
 
 	@Override
 	protected void doSetup(ManagementClient managementClient) throws Exception {
-		// TODO Auto-generated method stub
+		
+		addModule("org/jboss/ironjacamar/ra16out");
+		/*address = new ModelNode();
+		address.add("subsystem", "resource-adapters");
+		address.add("resource-adapter", "org.jboss.ironjacamar.ra16out:main");
+		address.protect();*/
 
+	}
+	
+	protected void setConfiguration(String fileName) throws Exception{
+		String xml = FileUtils.readFile(this.getClass(), fileName);
+        List<ModelNode> operations = xmlToModelOperations(xml, Namespace.CURRENT.getUriString(), new ResourceAdapterSubsystemParser());
+        address = operations.get(1).get("address");
+        executeOperation(operationListToCompositeOperation(operations));
+	}
+	
+	/**
+	 * Creates module structure for uncompressed RA archive.
+	 * RA classes are in flat form too
+	 * @throws Exception
+	 */
+	protected void makeModuleWithFlatClasses(String raFile) throws Exception {
+		
+		ResourceAdapterArchive rar = ShrinkWrap
+				.create(ResourceAdapterArchive.class);
+		JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "ra16out.jar");
+		jar.addPackage(MultipleConnectionFactory1.class.getPackage()).addClass(javax.jms.MessageListener.class);
+		rar.addAsManifestResource(this.getClass().getPackage(), raFile, "ra.xml");
+		rar.as(ExplodedExporter.class).exportExploded(testModuleRoot, "main");
+		jar.as(ExplodedExporter.class).exportExploded(testModuleRoot, "main");
+	}
+	
+	public static ModelNode getAddress(){
+		return address;
 	}
 
 }

@@ -1,0 +1,7 @@
+<subsystem xmlns="urn:jboss:domain:resource-adapters:1.0">
+	<resource-adapters>
+		<resource-adapter>
+			<module sloat="main" id="org.jboss.ironjacamar.ra16out" />
+		</resource-adapter>
+	</resource-adapters>
+</subsystem>

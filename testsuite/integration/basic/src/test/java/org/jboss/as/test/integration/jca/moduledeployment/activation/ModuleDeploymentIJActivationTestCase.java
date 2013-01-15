@@ -63,8 +63,8 @@ import static org.junit.Assert.assertNotNull;
  */
 @Ignore
 @RunWith(Arquillian.class)
-@ServerSetup(ModuleDeploymentActivationTestCase.ModuleAcDeploymentTestCaseSetup.class)
-public class ModuleDeploymentActivationTestCase extends
+@ServerSetup(ModuleDeploymentIJActivationTestCase.ModuleAcDeploymentTestCaseSetup.class)
+public class ModuleDeploymentIJActivationTestCase extends
 		ContainerResourceMgmtTestBase {
 
 	static class ModuleAcDeploymentTestCaseSetup extends
@@ -76,7 +76,8 @@ public class ModuleDeploymentActivationTestCase extends
 			JavaArchive jar = ShrinkWrap.create(JavaArchive.class,"ra16out.jar");
 			jar.addPackage(MultipleConnectionFactory1.class.getPackage());
 			rar.addAsLibrary(jar);
-			rar.addAsManifestResource(ModuleDeploymentActivationTestCase.class.getPackage(), "ra.xml", "ra.xml");
+			rar.addAsManifestResource(ModuleDeploymentIJActivationTestCase.class.getPackage(), "ra.xml", "ra.xml");
+			rar.addAsManifestResource(ModuleDeploymentIJActivationTestCase.class.getPackage(), "ironjacamar.xml", "ironjacamar.xml");
 			return rar.as(ZipExporter.class).exportAsInputStream();
 		}
 
@@ -95,7 +96,7 @@ public class ModuleDeploymentActivationTestCase extends
 			operation.get(OP_ADDR).set(address);
 			operation.get("module").set("org.jboss.ironjacamar.ra16out");
 
-			final ModelNode address1 = address.clone();
+			/*final ModelNode address1 = address.clone();
 			address1.add("connection-definitions", "java:/testMeRA");
 			address1.protect();
 
@@ -108,15 +109,15 @@ public class ModuleDeploymentActivationTestCase extends
 			operation1.get("jndi-name").set("java:/testMeRA");
 			ModelNode[] operations = new ModelNode[] { operation, operation1 };
 
-			executeOperation(ModelUtil.createCompositeNode(operations));
-
+			executeOperation(ModelUtil.createCompositeNode(operations));*/
+			executeOperation(operation);
 		}
 
 		@Override
 		public void tearDown(ManagementClient managementClient,
 				String containerId) throws Exception {
-			remove(address);
-			removeModule("org/jboss/ironjacamar/ra16out");
+			//remove(address);
+			//removeModule("org/jboss/ironjacamar/ra16out");
 		}
 
 	}
@@ -130,7 +131,7 @@ public class ModuleDeploymentActivationTestCase extends
 	public static JavaArchive createDeployment() throws Exception {
 
 		JavaArchive ja = ShrinkWrap.create(JavaArchive.class, "multiple.jar");
-		ja.addClasses(ModuleDeploymentActivationTestCase.class,
+		ja.addClasses(ModuleDeploymentIJActivationTestCase.class,
 				MgmtOperationException.class, XMLElementReader.class,
 				XMLElementWriter.class, ModuleAcDeploymentTestCaseSetup.class,
 				ModuleDeploymentTestCaseSetup.class);
@@ -144,7 +145,7 @@ public class ModuleDeploymentActivationTestCase extends
 		return ja;
 	}
 
-	@Resource(mappedName = "java:/testMeRA")
+	@Resource(mappedName = "java:/testMeRA1")
 	private ConnectionFactory connectionFactory;
 
 	/**
