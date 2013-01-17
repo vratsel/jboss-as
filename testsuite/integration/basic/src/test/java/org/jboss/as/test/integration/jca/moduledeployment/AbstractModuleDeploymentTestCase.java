@@ -50,43 +50,52 @@ import static org.junit.Assert.assertTrue;
  * @author <a href="vrastsel@redhat.com">Vladimir Rastseluev</a>
  * 
  */
-public abstract class AbstractModuleDeploymentTestCase extends ContainerResourceMgmtTestBase {
-
+public abstract class AbstractModuleDeploymentTestCase extends
+		ContainerResourceMgmtTestBase {
 
 	/**
 	 * Define the deployment
 	 * 
 	 * @return The deployment archive
 	 */
-	public static JavaArchive createDeployment(Class<? extends AbstractModuleDeploymentTestCase> clazz) throws Exception {
+	public static JavaArchive createDeployment(
+			Class<? extends AbstractModuleDeploymentTestCase> clazz)
+			throws Exception {
 
 		JavaArchive ja = ShrinkWrap.create(JavaArchive.class, "multiple.jar");
 		ja.addClasses(clazz, JcaMgmtServerSetupTask.class, JcaMgmtBase.class,
 				MgmtOperationException.class, XMLElementReader.class,
-				XMLElementWriter.class, AbstractModuleDeploymentTestCase.class, ModuleDeploymentTestCaseSetup.class);
+				XMLElementWriter.class, AbstractModuleDeploymentTestCase.class,
+				ModuleDeploymentTestCaseSetup.class);
 
 		ja.addPackage(AbstractMgmtTestBase.class.getPackage());
 
-		ja.addAsManifestResource(new StringAsset("Dependencies: org.jboss.as.controller-client,org.jboss.dmr,org.jboss.as.cli,javax.inject.api,org.jboss.as.connector\n"), "MANIFEST.MF");
+		ja.addAsManifestResource(
+				new StringAsset(
+						"Dependencies: org.jboss.as.controller-client,org.jboss.dmr,org.jboss.as.cli,javax.inject.api,org.jboss.as.connector\n"),
+				"MANIFEST.MF");
 
 		return ja;
 
 	}
 
-
 	/**
 	 * Test configuration
 	 * 
-	 * @throws Throwable in case of an error
+	 * @throws Throwable
+	 *             in case of an error
 	 */
-	public void testConnectionFactory(ConnectionFactory connectionFactory) throws Throwable {
+	public void testConnectionFactory(ConnectionFactory connectionFactory)
+			throws Throwable {
 		assertNotNull(connectionFactory);
 		assertNotNull(connectionFactory.getConnection());
 	}
 
 	/**
 	 * Tests connection in pool
-	 * @throws Exception in case of error
+	 * 
+	 * @throws Exception
+	 *             in case of error
 	 */
 	public void testConnection(String conName) throws Exception {
 		final ModelNode address1 = getAddress().clone();
@@ -101,40 +110,50 @@ public abstract class AbstractModuleDeploymentTestCase extends ContainerResource
 
 	/**
 	 * Returns basic address of resource adapter
+	 * 
 	 * @return address
 	 */
-	abstract protected  ModelNode getAddress();
-	
+	abstract protected ModelNode getAddress();
+
 	/**
-	 * Finding object by JNDI name and checks, if its String representation contains
-	 * expected substrings
-	 * @param jndiName of object
-	 * @param contains - substring, must be contained
+	 * Finding object by JNDI name and checks, if its String representation
+	 * contains expected substrings
+	 * 
+	 * @param jndiName
+	 *            of object
+	 * @param contains
+	 *            - substring, must be contained
 	 * @throws Exception
 	 */
-	public void testJndiObject(String jndiName, String...contains) throws Exception{
+	public void testJndiObject(String jndiName, String... contains)
+			throws Exception {
 		Object o = new InitialContext().lookup(jndiName);
 		assertNotNull(o);
-		for (String c: contains)
-			assertTrue(o.toString()+ " should contain " + c,o.toString().contains(c));
+		for (String c : contains)
+			assertTrue(o.toString() + " should contain " + c, o.toString()
+					.contains(c));
 
 	}
 
 	/**
-	 * Checks Set if there is a String element, containing some substring and returns it
-	 * @param ids - Set
-	 * @param contain - substring
+	 * Checks Set if there is a String element, containing some substring and
+	 * returns it
+	 * 
+	 * @param ids
+	 *            - Set
+	 * @param contain
+	 *            - substring
 	 * @return String
 	 */
-    public String getElementContaining(Set<String> ids, String contain){
-    	Iterator<String> it = ids.iterator();
-        while (it.hasNext()){
-        	String t = it.next();
-        	if (t.contains(contain)) {
-        		return t;
-        	}
-        }
-        return null;
-    }
+	public String getElementContaining(Set<String> ids, String contain) {
+		Iterator<String> it = ids.iterator();
+		while (it.hasNext()) {
+			String t = it.next();
+			if (t.contains(contain)) {
+				return t;
+			}
+		}
+		return null;
+	}
 
 }

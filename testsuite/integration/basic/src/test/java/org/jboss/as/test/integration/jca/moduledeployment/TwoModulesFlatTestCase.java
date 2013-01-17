@@ -19,56 +19,46 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.as.test.integration.jca.moduledeployment.flat;
-
+package org.jboss.as.test.integration.jca.moduledeployment;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.arquillian.api.ServerSetup;
 import org.jboss.as.arquillian.container.ManagementClient;
-import org.jboss.as.test.integration.jca.moduledeployment.AbstractModuleDeploymentTestCase;
-import org.jboss.as.test.integration.jca.moduledeployment.ModuleDeploymentTestCaseSetup;
 import org.jboss.dmr.ModelNode;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.annotation.Resource;
-import javax.resource.cci.ConnectionFactory;
 
 /**
  * AS7-5768 -Support for RA module deployment
  * 
  * @author <a href="vrastsel@redhat.com">Vladimir Rastseluev</a>
  * 
- * Tests for module deployment of resource adapter archive in 
- * uncompressed form with classes in flat form (under package structure)
+ *         Tests for module deployment of resource adapter archive in
+ *         uncompressed form with classes in flat form (under package structure)
  * 
- * Structure of module is:
- * modulename
- * modulename/main 
- * modulename/main/module.xml
- * modulename/main/META-INF
- * modulename/main/META-INF/ra.xml
- * modulename/main/org
- * modulename/main/org/jboss/
- * modulename/main/org/jboss/package/
- * modulename/main/org/jboss/package/First.class
- * modulename/main/org/jboss/package/Second.class
- * ...
+ *         Structure of module is: 
+ *         modulename 
+ *         modulename/main
+ *         modulename/main/module.xml 
+ *         modulename/main/META-INF
+ *         modulename/main/META-INF/ra.xml 
+ *         modulename/main/org
+ *         modulename/main/org/jboss/ 
+ *         modulename/main/org/jboss/package/
+ *         modulename/main/org/jboss/package/First.class
+ *         modulename/main/org/jboss/package/Second.class ...
  */
 @RunWith(Arquillian.class)
 @ServerSetup(TwoModulesFlatTestCase.ModuleAcDeploymentTestCaseSetup.class)
 public class TwoModulesFlatTestCase extends TwoRaFlatTestCase {
-	
 
 	static class ModuleAcDeploymentTestCaseSetup extends
 			ModuleDeploymentTestCaseSetup {
-		
+
 		public static ModelNode address1;
 
 		@Override
@@ -82,7 +72,7 @@ public class TwoModulesFlatTestCase extends TwoRaFlatTestCase {
 			address1 = address.clone();
 			setConfiguration("basic.xml");
 		}
-		
+
 		@Override
 		public void tearDown(ManagementClient managementClient,
 				String containerId) throws Exception {
@@ -95,12 +85,15 @@ public class TwoModulesFlatTestCase extends TwoRaFlatTestCase {
 
 	/**
 	 * Tests connection in pool
-	 * @throws Exception in case of error
+	 * 
+	 * @throws Exception
+	 *             in case of error
 	 */
 	@Test
 	@RunAsClient
 	public void testConnection2() throws Exception {
-		final ModelNode address1 = ModuleAcDeploymentTestCaseSetup.address1.clone();
+		final ModelNode address1 = ModuleAcDeploymentTestCaseSetup.address1
+				.clone();
 		address1.add("connection-definitions", cf1);
 		address1.protect();
 		final ModelNode operation1 = new ModelNode();
@@ -111,7 +104,7 @@ public class TwoModulesFlatTestCase extends TwoRaFlatTestCase {
 	}
 
 	@Override
-	protected  ModelNode getAddress() {
+	protected ModelNode getAddress() {
 		return ModuleAcDeploymentTestCaseSetup.getAddress();
 	}
 

@@ -26,11 +26,11 @@ import org.jboss.as.connector.subsystems.resourceadapters.Namespace;
 import org.jboss.as.connector.subsystems.resourceadapters.ResourceAdapterSubsystemParser;
 import org.jboss.as.test.integration.jca.JcaMgmtServerSetupTask;
 import org.jboss.as.test.integration.jca.rar.MultipleConnectionFactory1;
-import org.jboss.as.test.integration.management.base.AbstractMgmtServerSetupTask;
 import org.jboss.as.test.shared.FileUtils;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
 
@@ -54,13 +54,14 @@ public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 	protected File testModuleRoot;
 	protected File slot;
 	public static ModelNode address;
-	
+	protected final String defaultPath = "org/jboss/ironjacamar/ra16out";
 
 	public void addModule(final String moduleName) throws Exception {
 		addModule(moduleName, "module.xml");
 	}
-	
-	public void addModule(final String moduleName, String moduleXml) throws Exception {
+
+	public void addModule(final String moduleName, String moduleXml)
+			throws Exception {
 		removeModule(moduleName);
 		createTestModule(moduleXml);
 	}
@@ -114,72 +115,94 @@ public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 	}
 
 	private File getModulePath() {
-			String modulePath = System.getProperty("module.path", null);
-			if (modulePath == null) {
-				String jbossHome = System.getProperty("jboss.home", null);
-				if (jbossHome == null) {
-					throw new IllegalStateException(
-							"Neither -Dmodule.path nor -Djboss.home were set");
-				}
-				modulePath = jbossHome + File.separatorChar + "modules";
-			} else {
-				modulePath = modulePath.split(File.pathSeparator)[0];
-			}
-			File moduleDir = new File(modulePath);
-			if (!moduleDir.exists()) {
+		String modulePath = System.getProperty("module.path", null);
+		if (modulePath == null) {
+			String jbossHome = System.getProperty("jboss.home", null);
+			if (jbossHome == null) {
 				throw new IllegalStateException(
-						"Determined module path does not exist");
+						"Neither -Dmodule.path nor -Djboss.home were set");
 			}
-			if (!moduleDir.isDirectory()) {
-				throw new IllegalStateException(
-						"Determined module path is not a dir");
-			}
+			modulePath = jbossHome + File.separatorChar + "modules";
+		} else {
+			modulePath = modulePath.split(File.pathSeparator)[0];
+		}
+		File moduleDir = new File(modulePath);
+		if (!moduleDir.exists()) {
+			throw new IllegalStateException(
+					"Determined module path does not exist");
+		}
+		if (!moduleDir.isDirectory()) {
+			throw new IllegalStateException(
+					"Determined module path is not a dir");
+		}
 		return moduleDir;
 	}
 
 	@Override
-	public void tearDown(ManagementClient managementClient,
-			String containerId) throws Exception {
+	public void tearDown(ManagementClient managementClient, String containerId)
+			throws Exception {
 		takeSnapShot();
 		remove(address);
-		removeModule("org/jboss/ironjacamar/ra16out");
+		removeModule(defaultPath);
 	}
 
 	@Override
 	protected void doSetup(ManagementClient managementClient) throws Exception {
-		
-		addModule("org/jboss/ironjacamar/ra16out");
-		/*address = new ModelNode();
-		address.add("subsystem", "resource-adapters");
-		address.add("resource-adapter", "org.jboss.ironjacamar.ra16out:main");
-		address.protect();*/
+
+		addModule(defaultPath);
 
 	}
-	
-	protected void setConfiguration(String fileName) throws Exception{
+
+	protected void setConfiguration(String fileName) throws Exception {
 		String xml = FileUtils.readFile(this.getClass(), fileName);
-        List<ModelNode> operations = xmlToModelOperations(xml, Namespace.CURRENT.getUriString(), new ResourceAdapterSubsystemParser());
-        address = operations.get(1).get("address");
-        executeOperation(operationListToCompositeOperation(operations));
+		List<ModelNode> operations = xmlToModelOperations(xml,
+				Namespace.CURRENT.getUriString(),
+				new ResourceAdapterSubsystemParser());
+		address = operations.get(1).get("address");
+		executeOperation(operationListToCompositeOperation(operations));
 	}
-	
+
 	/**
-	 * Creates module structure for uncompressed RA archive.
-	 * RA classes are in flat form too
+	 * Creates module structure for uncompressed RA archive. RA classes are in
+	 * flat form too
+	 * 
 	 * @throws Exception
 	 */
 	protected void fillModuleWithFlatClasses(String raFile) throws Exception {
-		
+
 		ResourceAdapterArchive rar = ShrinkWrap
 				.create(ResourceAdapterArchive.class);
 		JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "ra16out.jar");
-		jar.addPackage(MultipleConnectionFactory1.class.getPackage()).addClass(javax.jms.MessageListener.class);
-		rar.addAsManifestResource(this.getClass().getPackage(), raFile, "ra.xml");
+		jar.addPackage(MultipleConnectionFactory1.class.getPackage()).addClass(
+				javax.jms.MessageListener.class);
+		rar.addAsManifestResource(this.getClass().getPackage(), raFile,
+				"ra.xml");
 		rar.as(ExplodedExporter.class).exportExploded(testModuleRoot, "main");
 		jar.as(ExplodedExporter.class).exportExploded(testModuleRoot, "main");
 	}
-	
-	public static ModelNode getAddress(){
+
+	/**
+	 * Creates module structure for uncompressed RA archive.
+	 * RA classes are packed in .jar archive
+	 * @throws Exception
+	 */
+	protected void fillModuleWithJar(String raFile) throws Exception {
+		ResourceAdapterArchive rar = ShrinkWrap
+				.create(ResourceAdapterArchive.class);
+		JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "ra16out.jar");
+		jar.addPackage(MultipleConnectionFactory1.class.getPackage());
+		rar.addAsManifestResource(
+				PureJarTestCase.class.getPackage(), raFile, "ra.xml");
+		rar.as(ExplodedExporter.class).exportExploded(testModuleRoot, "main");
+
+		copyFile(new File(slot, "ra16out.jar"), jar.as(ZipExporter.class).exportAsInputStream());
+	}
+
+	/**
+	 * Returns basic address
+	 * @return address
+	 */
+	public static ModelNode getAddress() {
 		return address;
 	}
 

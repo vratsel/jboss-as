@@ -19,17 +19,13 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.as.test.integration.jca.moduledeployment.flat;
-
+package org.jboss.as.test.integration.jca.moduledeployment;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.arquillian.api.ServerSetup;
 import org.jboss.as.arquillian.container.ManagementClient;
-import org.jboss.as.test.integration.jca.moduledeployment.AbstractModuleDeploymentTestCase;
-import org.jboss.as.test.integration.jca.moduledeployment.ModuleDeploymentTestCaseSetup;
-import org.jboss.as.test.integration.jca.moduledeployment.flat.MultiActivationFlatTestCase.ModuleAcDeploymentTestCaseSetup;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
@@ -43,29 +39,27 @@ import javax.resource.cci.ConnectionFactory;
  * 
  * @author <a href="vrastsel@redhat.com">Vladimir Rastseluev</a>
  * 
- * Tests for module deployment of resource adapter archive in 
- * uncompressed form with classes in flat form (under package structure)
+ *         Tests for module deployment of resource adapter archive in
+ *         uncompressed form with classes in flat form (under package structure)
  * 
- * Structure of module is:
- * modulename
- * modulename/main 
- * modulename/main/module.xml
- * modulename/main/META-INF
- * modulename/main/META-INF/ra.xml
- * modulename/main/org
- * modulename/main/org/jboss/
- * modulename/main/org/jboss/package/
- * modulename/main/org/jboss/package/First.class
- * modulename/main/org/jboss/package/Second.class
- * ...
+ *         Structure of module is: 
+ *         modulename 
+ *         modulename/main
+ *         modulename/main/module.xml 
+ *         modulename/main/META-INF
+ *         modulename/main/META-INF/ra.xml 
+ *         modulename/main/org
+ *         modulename/main/org/jboss/ 
+ *         modulename/main/org/jboss/package/
+ *         modulename/main/org/jboss/package/First.class
+ *         modulename/main/org/jboss/package/Second.class ...
  */
 @RunWith(Arquillian.class)
-@ServerSetup(MultiObjectActivationFlatTestCase.ModuleAcDeploymentTestCaseSetup.class)
-public class MultiObjectActivationFlatTestCase extends AbstractModuleDeploymentTestCase {
-	
+@ServerSetup(PartialObjectActivationFlatTestCase.ModuleAcDeploymentTestCaseSetup.class)
+public class PartialObjectActivationFlatTestCase extends
+		AbstractModuleDeploymentTestCase {
+
 	private final String cf = "java:/testMeRA";
-	private final String cf1 = "java:/testMeRA1";
-	
 
 	static class ModuleAcDeploymentTestCaseSetup extends
 			ModuleDeploymentTestCaseSetup {
@@ -75,7 +69,7 @@ public class MultiObjectActivationFlatTestCase extends AbstractModuleDeploymentT
 
 			super.doSetup(managementClient);
 			fillModuleWithFlatClasses("ra2.xml");
-			setConfiguration("multi.xml");
+			setConfiguration("basic.xml");
 
 		}
 	}
@@ -87,7 +81,7 @@ public class MultiObjectActivationFlatTestCase extends AbstractModuleDeploymentT
 	 */
 	@Deployment
 	public static JavaArchive createDeployment() throws Exception {
-		return createDeployment(MultiObjectActivationFlatTestCase.class);
+		return createDeployment(PartialObjectActivationFlatTestCase.class);
 	}
 
 	@Resource(mappedName = cf)
@@ -96,7 +90,8 @@ public class MultiObjectActivationFlatTestCase extends AbstractModuleDeploymentT
 	/**
 	 * Tests connection factory
 	 * 
-	 * @throws Throwable in case of an error
+	 * @throws Throwable
+	 *             in case of an error
 	 */
 	@Test
 	public void testConnectionFactory() throws Throwable {
@@ -104,46 +99,29 @@ public class MultiObjectActivationFlatTestCase extends AbstractModuleDeploymentT
 	}
 
 	/**
-	 * Tests connection factory
-	 * 
-	 * @throws Throwable in case of an error
-	 */
-	@Test
-	public void testConnectionFactory1() throws Throwable {
-		testJndiObject(cf1,"MultipleConnectionFactory2Impl");
-	}
-
-	/**
 	 * Tests admin object
+	 * 
 	 * @throws Exception
 	 */
 	@Test
 	public void testAdminObject() throws Exception {
-		testJndiObject("java:/testAO","MultipleAdminObject1Impl");
-	}
-
-	/**
-	 * Tests admin object
-	 * @throws Exception
-	 */
-	@Test
-	public void testAdminObject1() throws Exception {
-		testJndiObject("java:/testAO1","MultipleAdminObject2Impl");
+		testJndiObject("java:/testAO", "MultipleAdminObject1Impl");
 	}
 
 	/**
 	 * Tests connection in pool
-	 * @throws Exception in case of error
+	 * 
+	 * @throws Exception
+	 *             in case of error
 	 */
 	@Test
 	@RunAsClient
 	public void testConnections() throws Exception {
 		testConnection(cf);
-		testConnection(cf1);
 	}
-	
+
 	@Override
-	protected  ModelNode getAddress() {
+	protected ModelNode getAddress() {
 		return ModuleAcDeploymentTestCaseSetup.getAddress();
 	}
 

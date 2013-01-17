@@ -19,8 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.as.test.integration.jca.moduledeployment.flat;
-
+package org.jboss.as.test.integration.jca.moduledeployment;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
@@ -30,9 +29,6 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.as.arquillian.api.ServerSetup;
 import org.jboss.as.arquillian.container.ManagementClient;
-import org.jboss.as.test.integration.jca.moduledeployment.AbstractModuleDeploymentTestCase;
-import org.jboss.as.test.integration.jca.moduledeployment.ModuleDeploymentTestCaseSetup;
-import org.jboss.as.test.integration.jca.moduledeployment.flat.MultiActivationFlatTestCase.ModuleAcDeploymentTestCaseSetup;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
@@ -46,35 +42,33 @@ import javax.resource.cci.ConnectionFactory;
  * 
  * @author <a href="vrastsel@redhat.com">Vladimir Rastseluev</a>
  * 
- * Tests for module deployment of resource adapter archive in 
- * uncompressed form with classes in flat form (under package structure)
+ *         Tests for module deployment of resource adapter archive in
+ *         uncompressed form with classes in flat form (under package structure)
  * 
- * Structure of module is:
- * modulename
- * modulename/main 
- * modulename/main/module.xml
- * modulename/main/META-INF
- * modulename/main/META-INF/ra.xml
- * modulename/main/org
- * modulename/main/org/jboss/
- * modulename/main/org/jboss/package/
- * modulename/main/org/jboss/package/First.class
- * modulename/main/org/jboss/package/Second.class
- * ...
+ *         Structure of module is: 
+ *         modulename 
+ *         modulename/main
+ *         modulename/main/module.xml 
+ *         modulename/main/META-INF
+ *         modulename/main/META-INF/ra.xml 
+ *         modulename/main/org
+ *         modulename/main/org/jboss/ 
+ *         modulename/main/org/jboss/package/
+ *         modulename/main/org/jboss/package/First.class
+ *         modulename/main/org/jboss/package/Second.class ...
  */
 @RunWith(Arquillian.class)
 @ServerSetup(TwoRaFlatTestCase.ModuleAcDeploymentTestCaseSetup.class)
 public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
-	
+
 	protected final String cf = "java:/testMeRA";
 	protected final String cf1 = "java:/testMeRA1";
-	
 
 	static class ModuleAcDeploymentTestCaseSetup extends
 			ModuleDeploymentTestCaseSetup {
-		
+
 		public static ModelNode address1;
-		
+
 		@Override
 		public void doSetup(ManagementClient managementClient) throws Exception {
 
@@ -84,7 +78,7 @@ public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
 			address1 = address.clone();
 			setConfiguration("basic.xml");
 		}
-		
+
 		@Override
 		public void tearDown(ManagementClient managementClient,
 				String containerId) throws Exception {
@@ -112,7 +106,8 @@ public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
 	/**
 	 * Tests connection factory
 	 * 
-	 * @throws Throwable in case of an error
+	 * @throws Throwable
+	 *             in case of an error
 	 */
 	@Test
 	public void testConnectionFactory() throws Throwable {
@@ -122,16 +117,20 @@ public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
 	/**
 	 * Tests connection factory
 	 * 
-	 * @throws Throwable in case of an error
+	 * @throws Throwable
+	 *             in case of an error
 	 */
 	@Test
 	public void testConnectionFactoryProperties() throws Throwable {
-		testJndiObject(cf,"MultipleConnectionFactory1Impl","name=MCF","name=RA");
+		testJndiObject(cf, "MultipleConnectionFactory1Impl", "name=MCF",
+				"name=RA");
 	}
+
 	/**
 	 * Tests connection factory
 	 * 
-	 * @throws Throwable in case of an error
+	 * @throws Throwable
+	 *             in case of an error
 	 */
 	@Test
 	public void testConnectionFactory1() throws Throwable {
@@ -141,34 +140,40 @@ public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
 	/**
 	 * Tests connection factory
 	 * 
-	 * @throws Throwable in case of an error
+	 * @throws Throwable
+	 *             in case of an error
 	 */
 	@Test
 	public void testConnectionFactoryProperties1() throws Throwable {
-		testJndiObject(cf1,"MultipleConnectionFactory1Impl","name=MCF","name=RA");
+		testJndiObject(cf1, "MultipleConnectionFactory1Impl", "name=MCF",
+				"name=RA");
 	}
 
 	/**
 	 * Tests admin object
+	 * 
 	 * @throws Exception
 	 */
 	@Test
 	public void testAdminObject() throws Exception {
-		testJndiObject("java:/testAO","MultipleAdminObject1Impl","name=AO");
+		testJndiObject("java:/testAO", "MultipleAdminObject1Impl", "name=AO");
 	}
 
 	/**
 	 * Tests admin object
+	 * 
 	 * @throws Exception
 	 */
 	@Test
 	public void testAdminObject1() throws Exception {
-		testJndiObject("java:/testAO1","MultipleAdminObject1Impl","name=AO");
+		testJndiObject("java:/testAO1", "MultipleAdminObject1Impl", "name=AO");
 	}
 
 	/**
 	 * Tests connection in pool
-	 * @throws Exception in case of error
+	 * 
+	 * @throws Exception
+	 *             in case of error
 	 */
 	@Test
 	@RunAsClient
@@ -178,12 +183,15 @@ public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
 
 	/**
 	 * Tests connection in pool
-	 * @throws Exception in case of error
+	 * 
+	 * @throws Exception
+	 *             in case of error
 	 */
 	@Test
 	@RunAsClient
 	public void testConnection2() throws Exception {
-		final ModelNode address1 = ModuleAcDeploymentTestCaseSetup.address1.clone();
+		final ModelNode address1 = ModuleAcDeploymentTestCaseSetup.address1
+				.clone();
 		address1.add("connection-definitions", cf1);
 		address1.protect();
 		final ModelNode operation1 = new ModelNode();
@@ -192,10 +200,10 @@ public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
 		executeOperation(operation1);
 
 	}
+
 	@Override
-	protected  ModelNode getAddress() {
+	protected ModelNode getAddress() {
 		return ModuleAcDeploymentTestCaseSetup.getAddress();
 	}
-
 
 }
