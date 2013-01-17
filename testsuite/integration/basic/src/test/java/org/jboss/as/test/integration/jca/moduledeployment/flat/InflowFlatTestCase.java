@@ -92,7 +92,7 @@ public class InflowFlatTestCase extends AbstractModuleDeploymentTestCase {
 		public void doSetup(ManagementClient managementClient) throws Exception {
 
 			super.doSetup(managementClient);
-			makeModuleWithFlatClasses("ra3.xml");
+			fillModuleWithFlatClasses("ra3.xml");
 			setConfiguration("inflow.xml");
 
 		}

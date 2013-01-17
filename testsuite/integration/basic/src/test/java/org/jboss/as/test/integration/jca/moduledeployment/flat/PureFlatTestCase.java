@@ -71,7 +71,7 @@ public class PureFlatTestCase extends AbstractModuleDeploymentTestCase {
 		public void doSetup(ManagementClient managementClient) throws Exception {
 
 			super.doSetup(managementClient);
-			makeModuleWithFlatClasses("ra.xml");
+			fillModuleWithFlatClasses("ra.xml");
 			setConfiguration("pure.xml");
 
 		}

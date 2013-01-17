@@ -74,7 +74,7 @@ public class MultiObjectActivationFlatTestCase extends AbstractModuleDeploymentT
 		public void doSetup(ManagementClient managementClient) throws Exception {
 
 			super.doSetup(managementClient);
-			makeModuleWithFlatClasses("ra2.xml");
+			fillModuleWithFlatClasses("ra2.xml");
 			setConfiguration("multi.xml");
 
 		}

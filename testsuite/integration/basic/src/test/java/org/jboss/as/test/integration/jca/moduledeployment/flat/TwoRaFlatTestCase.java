@@ -22,6 +22,9 @@
 package org.jboss.as.test.integration.jca.moduledeployment.flat;
 
 
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
+
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -60,23 +63,35 @@ import javax.resource.cci.ConnectionFactory;
  * ...
  */
 @RunWith(Arquillian.class)
-@ServerSetup(BasicFlatTestCase.ModuleAcDeploymentTestCaseSetup.class)
-public class BasicFlatTestCase extends AbstractModuleDeploymentTestCase {
+@ServerSetup(TwoRaFlatTestCase.ModuleAcDeploymentTestCaseSetup.class)
+public class TwoRaFlatTestCase extends AbstractModuleDeploymentTestCase {
 	
-	private final String cf = "java:/testMeRA";
+	protected final String cf = "java:/testMeRA";
+	protected final String cf1 = "java:/testMeRA1";
 	
 
 	static class ModuleAcDeploymentTestCaseSetup extends
 			ModuleDeploymentTestCaseSetup {
-
+		
+		public static ModelNode address1;
+		
 		@Override
 		public void doSetup(ManagementClient managementClient) throws Exception {
 
 			super.doSetup(managementClient);
 			fillModuleWithFlatClasses("ra1.xml");
+			setConfiguration("second.xml");
+			address1 = address.clone();
 			setConfiguration("basic.xml");
-
 		}
+		
+		@Override
+		public void tearDown(ManagementClient managementClient,
+				String containerId) throws Exception {
+			remove(address1);
+			super.tearDown(managementClient, containerId);
+		}
+
 	}
 
 	/**
@@ -86,11 +101,13 @@ public class BasicFlatTestCase extends AbstractModuleDeploymentTestCase {
 	 */
 	@Deployment
 	public static JavaArchive createDeployment() throws Exception {
-		return createDeployment(BasicFlatTestCase.class);
+		return createDeployment(TwoRaFlatTestCase.class);
 	}
 
 	@Resource(mappedName = cf)
 	private ConnectionFactory connectionFactory;
+	@Resource(mappedName = cf1)
+	private ConnectionFactory connectionFactory1;
 
 	/**
 	 * Tests connection factory
@@ -108,8 +125,27 @@ public class BasicFlatTestCase extends AbstractModuleDeploymentTestCase {
 	 * @throws Throwable in case of an error
 	 */
 	@Test
-	public void testConnectionFactory1() throws Throwable {
+	public void testConnectionFactoryProperties() throws Throwable {
 		testJndiObject(cf,"MultipleConnectionFactory1Impl","name=MCF","name=RA");
+	}
+	/**
+	 * Tests connection factory
+	 * 
+	 * @throws Throwable in case of an error
+	 */
+	@Test
+	public void testConnectionFactory1() throws Throwable {
+		testConnectionFactory(connectionFactory1);
+	}
+
+	/**
+	 * Tests connection factory
+	 * 
+	 * @throws Throwable in case of an error
+	 */
+	@Test
+	public void testConnectionFactoryProperties1() throws Throwable {
+		testJndiObject(cf1,"MultipleConnectionFactory1Impl","name=MCF","name=RA");
 	}
 
 	/**
@@ -122,18 +158,44 @@ public class BasicFlatTestCase extends AbstractModuleDeploymentTestCase {
 	}
 
 	/**
+	 * Tests admin object
+	 * @throws Exception
+	 */
+	@Test
+	public void testAdminObject1() throws Exception {
+		testJndiObject("java:/testAO1","MultipleAdminObject1Impl","name=AO");
+	}
+
+	/**
 	 * Tests connection in pool
 	 * @throws Exception in case of error
 	 */
 	@Test
 	@RunAsClient
-	public void testConnection() throws Exception {
+	public void testConnection1() throws Exception {
 		testConnection(cf);
 	}
 
+	/**
+	 * Tests connection in pool
+	 * @throws Exception in case of error
+	 */
+	@Test
+	@RunAsClient
+	public void testConnection2() throws Exception {
+		final ModelNode address1 = ModuleAcDeploymentTestCaseSetup.address1.clone();
+		address1.add("connection-definitions", cf1);
+		address1.protect();
+		final ModelNode operation1 = new ModelNode();
+		operation1.get(OP).set("test-connection-in-pool");
+		operation1.get(OP_ADDR).set(address1);
+		executeOperation(operation1);
+
+	}
 	@Override
 	protected  ModelNode getAddress() {
 		return ModuleAcDeploymentTestCaseSetup.getAddress();
 	}
+
 
 }

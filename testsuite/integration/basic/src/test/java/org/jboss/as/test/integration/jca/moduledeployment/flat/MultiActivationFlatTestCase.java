@@ -73,7 +73,7 @@ public class MultiActivationFlatTestCase extends AbstractModuleDeploymentTestCas
 		public void doSetup(ManagementClient managementClient) throws Exception {
 
 			super.doSetup(managementClient);
-			makeModuleWithFlatClasses("ra1.xml");
+			fillModuleWithFlatClasses("ra1.xml");
 			setConfiguration("double.xml");
 
 		}

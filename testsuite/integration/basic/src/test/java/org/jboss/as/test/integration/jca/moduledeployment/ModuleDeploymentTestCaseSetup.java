@@ -57,8 +57,12 @@ public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 	
 
 	public void addModule(final String moduleName) throws Exception {
+		addModule(moduleName, "module.xml");
+	}
+	
+	public void addModule(final String moduleName, String moduleXml) throws Exception {
 		removeModule(moduleName);
-		createTestModule();
+		createTestModule(moduleXml);
 	}
 
 	public void removeModule(final String moduleName) throws Exception {
@@ -77,7 +81,7 @@ public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 		}
 	}
 
-	private void createTestModule() throws IOException {
+	private void createTestModule(String moduleXml) throws IOException {
 		if (testModuleRoot.exists()) {
 			throw new IllegalArgumentException(testModuleRoot
 					+ " already exists");
@@ -87,7 +91,7 @@ public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 			throw new IllegalArgumentException("Could not create " + file);
 		}
 		slot = file;
-		URL url = this.getClass().getResource("module.xml");
+		URL url = this.getClass().getResource(moduleXml);
 		if (url == null) {
 			throw new IllegalStateException("Could not find module.xml");
 		}
@@ -136,9 +140,9 @@ public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 	@Override
 	public void tearDown(ManagementClient managementClient,
 			String containerId) throws Exception {
+		takeSnapShot();
 		remove(address);
 		removeModule("org/jboss/ironjacamar/ra16out");
-		//reload();
 	}
 
 	@Override
@@ -164,7 +168,7 @@ public class ModuleDeploymentTestCaseSetup extends JcaMgmtServerSetupTask {
 	 * RA classes are in flat form too
 	 * @throws Exception
 	 */
-	protected void makeModuleWithFlatClasses(String raFile) throws Exception {
+	protected void fillModuleWithFlatClasses(String raFile) throws Exception {
 		
 		ResourceAdapterArchive rar = ShrinkWrap
 				.create(ResourceAdapterArchive.class);
